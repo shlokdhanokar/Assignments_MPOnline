@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Income Predictor</title>
+  <style>
+    :root {
+      --surface: #fcfcfb; --card: #ffffff; --ink: #0b0b0b; --muted: #52514e;
+      --line: #d8d7d2; --accent: #2a78d6; --good: #1baf7a; --warn: #eb6834;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --surface: #1a1a19; --card: #232322; --ink: #ffffff; --muted: #c3c2b7;
+              --line: #3a3a38; --accent: #3987e5; --good: #199e70; --warn: #d95926; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 2rem 1rem; background: var(--surface); color: var(--ink);
+           font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .wrap { max-width: 860px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; margin: 0 0 .35rem; }
+    .sub { color: var(--muted); margin: 0 0 1.5rem; font-size: .93rem; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+            padding: 1.4rem; margin-bottom: 1.2rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; }
+    label { display: block; font-size: .82rem; color: var(--muted); margin-bottom: .3rem;
+            text-transform: capitalize; }
+    input, select { width: 100%; padding: .55rem .65rem; border: 1px solid var(--line);
+                    border-radius: 7px; background: var(--surface); color: var(--ink);
+                    font-size: .95rem; }
+    button { margin-top: 1.2rem; padding: .7rem 1.5rem; border: 0; border-radius: 7px;
+             background: var(--accent); color: #fff; font-size: .97rem; font-weight: 600;
+             cursor: pointer; }
+    button:hover { filter: brightness(1.08); }
+    .result { border-left: 4px solid var(--good); }
+    .result.low { border-left-color: var(--warn); }
+    .verdict { font-size: 1.5rem; font-weight: 700; margin: 0 0 .4rem; }
+    .bar { height: 9px; background: var(--line); border-radius: 99px; overflow: hidden; margin: .7rem 0 .4rem; }
+    .bar span { display: block; height: 100%; background: var(--accent); }
+    .error { border-left: 4px solid var(--warn); color: var(--warn); }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    td { padding: .3rem 0; color: var(--muted); }
+    td:last-child { text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
+    code { background: var(--surface); padding: .1rem .35rem; border-radius: 4px;
+           border: 1px solid var(--line); font-size: .85em; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Income Predictor</h1>
+  <p class="sub">
+    Predicts whether annual income exceeds $50,000, using a gradient-boosting model
+    trained on the UCI Adult Census dataset
+    ({{ "{:,}".format(metadata.training_rows) }} training rows &middot;
+    holdout accuracy {{ "%.1f"|format(metadata.accuracy * 100) }}% &middot;
+    ROC-AUC {{ metadata.roc_auc }}).
+  </p>
+
+  {% if error %}
+    <div class="card error"><strong>Error:</strong> {{ error }}</div>
+  {% endif %}
+
+  {% if result %}
+    <div class="card result {{ 'low' if result.prediction == '<=50K' else '' }}">
+      <p class="verdict">{{ result.prediction }}</p>
+      <div class="bar"><span style="width: {{ result.probability_above_50k * 100 }}%"></span></div>
+      <table>
+        <tr><td>Probability of &gt;$50K</td><td>{{ "%.1f"|format(result.probability_above_50k * 100) }}%</td></tr>
+        <tr><td>Model confidence</td><td>{{ "%.1f"|format(result.confidence * 100) }}%</td></tr>
+      </table>
+    </div>
+  {% endif %}
+
+  <form method="post" class="card">
+    <div class="grid">
+      {% for field in numeric_fields %}
+        <div>
+          <label for="{{ field }}">{{ field.replace('-', ' ') }}</label>
+          <input type="number" step="any" id="{{ field }}" name="{{ field }}"
+                 value="{{ submitted.get(field, '') }}" required>
+        </div>
+      {% endfor %}
+      {% for field, options in categorical_fields.items() %}
+        <div>
+          <label for="{{ field }}">{{ field.replace('-', ' ') }}</label>
+          <select id="{{ field }}" name="{{ field }}" required>
+            <option value="" disabled {{ 'selected' if not submitted.get(field) }}>Select…</option>
+            {% for option in options %}
+              <option value="{{ option }}" {{ 'selected' if submitted.get(field) == option }}>{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endfor %}
+    </div>
+    <button type="submit">Predict</button>
+  </form>
+
+  <div class="card">
+    <strong>JSON API</strong>
+    <p class="sub" style="margin:.5rem 0 0">
+      <code>POST /api/predict</code> with a JSON body containing the same fields.
+      <code>GET /health</code> returns a liveness probe.
+    </p>
+  </div>
+</div>
+</body>
+</html>
