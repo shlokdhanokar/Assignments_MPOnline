@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+Brain-Tumor-Classification-DataSet-master/
+run_log.txt

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import random
+import copy
 from collections import deque
 from pathlib import Path
 
@@ -232,6 +233,12 @@ def main() -> None:
     moving_averages: list[float] = []
     epsilons: list[float] = []
     solved_episode = None
+    # DQN is not monotonic: a run can peak and then collapse (catastrophic
+    # forgetting). Snapshot the weights whenever the rolling average improves and
+    # evaluate THOSE, rather than whatever the final episode happened to leave behind.
+    best_average = -np.inf
+    best_state = copy.deepcopy(agent.online.state_dict())
+    best_episode = 0
 
     for episode in range(1, MAX_EPISODES + 1):
         state, _ = env.reset(seed=RANDOM_STATE + episode)
@@ -253,6 +260,11 @@ def main() -> None:
         window = episode_returns[-SOLVED_WINDOW:]
         moving_average = float(np.mean(window))
         moving_averages.append(moving_average)
+
+        if len(episode_returns) >= SOLVED_WINDOW and moving_average > best_average:
+            best_average = moving_average
+            best_state = copy.deepcopy(agent.online.state_dict())
+            best_episode = episode
 
         if episode % 25 == 0:
             print(f"  Episode {episode:4d} | return {total:5.0f} | "
@@ -370,10 +382,13 @@ def main() -> None:
             "curve just cannot show it while it is still exploring."
         )
     print(
-        "2. The learning curve is not monotonic. Returns swing violently mid-training "
-        "because the policy, the data it collects and the bootstrap target all change "
-        "together - unlike supervised learning, the agent generates its own training "
-        "distribution, so an early improvement shifts every later batch."
+        f"2. The learning curve is not monotonic, and this run demonstrates why that "
+        f"matters. The rolling average peaked at {best_average:.1f} around episode "
+        f"{best_episode} and finished at {final_average:.1f} - DQN can and does collapse "
+        "after reaching a good policy, because the policy, the data it collects and the "
+        "bootstrap target all move together. Evaluating whatever weights the final "
+        "episode happens to leave behind is therefore unsound; this script snapshots the "
+        "best rolling-average weights and evaluates those."
     )
     print(
         "3. Two components do the stabilising work. The replay buffer decorrelates "

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import os
 import random
+import copy
 from collections import deque
 from pathlib import Path
 
@@ -210,6 +211,10 @@ def main() -> None:
     moving_averages: list[float] = []
     solved_episode = None
     best_average = -np.inf
+    # Same guard as the CartPole project: DQN runs can peak and then collapse, so
+    # keep a snapshot of the best weights and evaluate those.
+    best_state = copy.deepcopy(agent.online.state_dict())
+    best_episode = 0
 
     for episode in range(1, MAX_EPISODES + 1):
         state, _ = env.reset(seed=RANDOM_STATE + episode)
@@ -231,7 +236,10 @@ def main() -> None:
         episode_returns.append(total)
         moving_average = float(np.mean(episode_returns[-SOLVED_WINDOW:]))
         moving_averages.append(moving_average)
-        best_average = max(best_average, moving_average)
+        if len(episode_returns) >= SOLVED_WINDOW and moving_average > best_average:
+            best_average = moving_average
+            best_state = copy.deepcopy(agent.online.state_dict())
+            best_episode = episode
 
         if episode % 25 == 0:
             print(f"  Episode {episode:4d} | return {total:8.1f} | "

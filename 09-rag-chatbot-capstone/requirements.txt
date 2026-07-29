@@ -1,0 +1,4 @@
+numpy
+scikit-learn
+# optional: enables the Claude generation path
+# anthropic
