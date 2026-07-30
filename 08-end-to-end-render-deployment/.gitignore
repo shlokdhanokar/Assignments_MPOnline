@@ -1,5 +1,24 @@
-model.joblib
-model_metadata.json
-adult.data
+# Python
 __pycache__/
 *.pyc
+.venv/
+.env
+
+# Datasets - never committed; the README links the source
+*.csv
+*.data
+*.test
+*.zip
+*.tar.gz
+
+# Trained model artifacts - rebuilt by train_model.py at deploy time
+model_metadata.json
+*.h5
+*.keras
+*.pkl
+*.pt
+*.joblib
+
+# Run logs
+*.log
+run_log.txt

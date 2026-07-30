@@ -5,7 +5,7 @@ __pycache__/
 .env
 
 # Datasets - never committed; the README links the source
-Brain-Tumor-Classification-DataSet-master/
+ml-latest-small/
 *.csv
 *.data
 *.test
