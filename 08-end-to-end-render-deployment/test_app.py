@@ -79,5 +79,14 @@ def run_tests() -> None:
         raise SystemExit(1)
 
 
+def test_service() -> None:
+    """Entry point for pytest, which collects `test_*` functions only.
+
+    Without this wrapper `pytest test_app.py` exits with code 5 (no tests
+    collected) and silently looks like a pass in CI.
+    """
+    run_tests()
+
+
 if __name__ == "__main__":
     run_tests()

@@ -30,7 +30,8 @@ TRAIN_DIR = "Training"
 TEST_DIR = "Testing"
 IMAGE_SIZE = (150, 150)
 BATCH_SIZE = 32
-EPOCHS = int(os.environ.get("EPOCHS", "40"))
+# 25 is the budget behind the reported numbers; the README quotes the same.
+EPOCHS = int(os.environ.get("EPOCHS", "25"))
 VALIDATION_SPLIT = 0.15
 RANDOM_STATE = 42
 # BatchNorm keeps running mean/variance for inference. Keras defaults to

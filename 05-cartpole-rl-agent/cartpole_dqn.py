@@ -23,7 +23,9 @@ import torch.optim as optim
 ENV_ID = "CartPole-v1"
 SOLVED_THRESHOLD = 475.0     # CartPole-v1 is "solved" at 475 mean return over 100 episodes
 SOLVED_WINDOW = 100
-MAX_EPISODES = int(os.environ.get("MAX_EPISODES", "600"))
+# 500 is the budget behind the reported 296.0 mean return. Raise to 600-800 to
+# clear the 475 "solved" threshold - see the README note on episode cost.
+MAX_EPISODES = int(os.environ.get("MAX_EPISODES", "500"))
 EVAL_EPISODES = 100
 
 GAMMA = 0.99                 # discount factor
@@ -261,7 +263,11 @@ def main() -> None:
         moving_average = float(np.mean(window))
         moving_averages.append(moving_average)
 
-        if len(episode_returns) >= SOLVED_WINDOW and moving_average > best_average:
+        # Track from episode 1, not from the first full window. Gating this on
+        # len >= SOLVED_WINDOW left best_state holding the *untrained* initial
+        # weights whenever MAX_EPISODES < 100, so a short run evaluated a random
+        # network while still printing "restored the best-performing weights".
+        if moving_average > best_average:
             best_average = moving_average
             best_state = copy.deepcopy(agent.online.state_dict())
             best_episode = episode

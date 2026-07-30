@@ -28,7 +28,9 @@ CLASS_NAMES = [
 ]
 N_CLASSES = len(CLASS_NAMES)
 IMAGE_SHAPE = (32, 32, 3)
-EPOCHS = int(os.environ.get("EPOCHS", "30"))
+# 15 is the budget the reported 79.65% was produced with, so the default
+# reproduces the README instead of quietly training twice as long.
+EPOCHS = int(os.environ.get("EPOCHS", "15"))
 BASELINE_EPOCHS = int(os.environ.get("BASELINE_EPOCHS", "15"))
 BATCH_SIZE = 128
 VALIDATION_SPLIT = 0.1
@@ -324,14 +326,29 @@ def main() -> None:
         f"against a 10% random-guess floor. Training ran {len(history.history['accuracy'])} "
         f"epochs before early stopping restored the best weights."
     )
-    print(
-        f"2. Convolution, not capacity, is what wins. The dense-only control has "
-        f"{baseline_params:,} parameters against the CNN's {cnn_params:,} - a comparable "
-        f"budget - yet reaches only {baseline_accuracy:.2%} versus {test_accuracy:.2%}. "
-        "Flattening a 32x32 image discards the spatial adjacency that makes an edge an "
-        "edge, and weight sharing lets the CNN detect a feature anywhere in the frame "
-        "instead of relearning it per position."
-    )
+    # Read the comparison off the numbers instead of asserting it. Under a short
+    # epoch budget the dense net can genuinely finish ahead - the CNN's batch
+    # norm, dropout and augmentation cost accuracy early and repay it later - and
+    # printing "convolution wins" over a result that says otherwise is just wrong.
+    if test_accuracy > baseline_accuracy:
+        print(
+            f"2. Convolution, not capacity, is what wins. The dense-only control has "
+            f"{baseline_params:,} parameters against the CNN's {cnn_params:,} - a comparable "
+            f"budget - yet reaches only {baseline_accuracy:.2%} versus {test_accuracy:.2%}. "
+            "Flattening a 32x32 image discards the spatial adjacency that makes an edge an "
+            "edge, and weight sharing lets the CNN detect a feature anywhere in the frame "
+            "instead of relearning it per position."
+        )
+    else:
+        print(
+            f"2. In THIS run the dense control ({baseline_accuracy:.2%}, "
+            f"{baseline_params:,} parameters) finished ahead of the CNN "
+            f"({test_accuracy:.2%}, {cnn_params:,}), which inverts the expected result. "
+            f"That is a symptom of too small an epoch budget ({EPOCHS}), not evidence "
+            "against convolution: the CNN's batch normalisation, dropout and augmentation "
+            "all depress early accuracy and repay it later. Re-run at the default budget "
+            "before drawing any conclusion from this comparison."
+        )
     print(
         f"3. Accuracy is uneven across classes. '{CLASS_NAMES[best_class]}' is easiest "
         f"({per_class_recall[best_class]:.2%} recall) and '{CLASS_NAMES[worst_class]}' hardest "
