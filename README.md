@@ -8,15 +8,21 @@ Every project is **self-contained** — its own script, README, dependencies, an
 
 | # | Project | Domain | Headline result |
 |---|---|---|---|
-| 1 | [Adult Census Income Classification](01-adult-census-income-classification/) | Tabular classification | 87.23% accuracy, 0.9269 ROC-AUC |
-| 2 | [CIFAR-10 Image Classification (CNN)](02-cifar10-image-classification-cnn/) | Computer vision | CNN vs dense-network control |
-| 3 | [Face Recognition (LFW, CNN)](03-face-recognition-lfw-cnn/) | Computer vision | CNN vs eigenfaces baseline |
-| 4 | [Cancer Detection from MRI](04-cancer-detection-mri/) | Medical imaging | 4-class tumour classification |
-| 5 | [Cart-Pole RL Agent](05-cartpole-rl-agent/) | Reinforcement learning | DQN from scratch |
-| 6 | [Lunar Lander RL Agent](06-lunar-lander-rl-agent/) | Reinforcement learning | Double DQN |
-| 7 | [Movie Recommendation System](07-movie-recommendation-system/) | Recommender systems | 0.8603 RMSE, 4 methods compared |
-| 8 | [End-to-End Render Deployment](08-end-to-end-render-deployment/) | MLOps | Flask + JSON API, 14/14 tests pass |
-| 9 | [RAG Chatbot (Capstone)](09-rag-chatbot-capstone/) | LLM / IR | 95% Hit@1, 0.967 MRR |
+| 1 | [Adult Census Income Classification](01-adult-census-income-classification/) | Tabular classification | **87.23%** accuracy, **0.9269** ROC-AUC (3 models compared) |
+| 2 | [CIFAR-10 Image Classification (CNN)](02-cifar10-image-classification-cnn/) | Computer vision | CNN **79.65%** vs dense control **42.69%** (3× params) |
+| 3 | [Face Recognition (LFW, CNN)](03-face-recognition-lfw-cnn/) | Computer vision | Eigenfaces **84.16%** beats CNN **41.30%** |
+| 4 | [Cancer Detection from MRI](04-cancer-detection-mri/) | Medical imaging | **67.8%** sensitivity, **95.2%** specificity (4 classes) |
+| 5 | [Cart-Pole RL Agent](05-cartpole-rl-agent/) | Reinforcement learning | DQN — **296.0** mean return, **13.1×** random |
+| 6 | [Lunar Lander RL Agent](06-lunar-lander-rl-agent/) | Reinforcement learning | Double DQN — **221.4**, **solved**, 81/100 landings |
+| 7 | [Movie Recommendation System](07-movie-recommendation-system/) | Recommender systems | **0.8603** RMSE, 4 methods compared |
+| 8 | [End-to-End Render Deployment](08-end-to-end-render-deployment/) | MLOps | Flask + JSON API, **14/14** tests pass |
+| 9 | [RAG Chatbot (Capstone)](09-rag-chatbot-capstone/) | LLM / IR | **95%** Hit@1, **0.967** MRR |
+
+### Three results worth clicking into
+
+- **Project 3 — a 1990s method beats a modern CNN by 43 points.** On 966 training images, eigenfaces (PCA+SVM) scores 84.16% while a CNN trained from scratch reaches 41.30% against a 41.15% majority-class floor — it learned essentially nothing. "Deep learning is better" is a claim about a data regime, not a universal fact.
+- **Project 2 — the same CNN design works when the data is there.** With 50,000 images it hits 79.65%, and the dense control with 3.1× more parameters manages only 42.69%. Together with project 3, the two runs bracket exactly when convolutional inductive bias pays off.
+- **Project 4 — validation said 88%, the held-out test folder said 62%.** A random split of the training folder was not a substitute for a genuinely held-out set, and glioma recall collapsed to 10%.
 
 ## Datasets
 

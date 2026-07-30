@@ -17,3 +17,6 @@ datasets/
 run_log.txt
 server.log
 ml-latest-small/
+run_log.txt
+lfw_download.log
+sequential_run.log
