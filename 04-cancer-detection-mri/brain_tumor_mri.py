@@ -33,6 +33,13 @@ BATCH_SIZE = 32
 EPOCHS = int(os.environ.get("EPOCHS", "40"))
 VALIDATION_SPLIT = 0.15
 RANDOM_STATE = 42
+# BatchNorm keeps running mean/variance for inference. Keras defaults to
+# momentum=0.99, which needs ~500 steps to track the batch statistics - but this
+# dataset gives only ~77 steps per epoch. The lagging running stats made
+# validation accuracy sit at chance (0.23 on 4 classes) while training accuracy
+# climbed past 0.78, because the two paths were effectively using different
+# normalisation. 0.9 converges within a single epoch.
+BN_MOMENTUM = 0.9
 NO_TUMOUR_CLASS = "no_tumor"
 
 COLOR_TRAIN = "#2a78d6"
@@ -71,21 +78,21 @@ def build_cnn(n_classes: int) -> Sequential:
         layers.RandomContrast(0.1),
 
         layers.Conv2D(32, 3, padding="same", activation="relu"),
-        layers.BatchNormalization(),
+        layers.BatchNormalization(momentum=BN_MOMENTUM),
         layers.MaxPooling2D(),
 
         layers.Conv2D(64, 3, padding="same", activation="relu"),
-        layers.BatchNormalization(),
+        layers.BatchNormalization(momentum=BN_MOMENTUM),
         layers.MaxPooling2D(),
         layers.Dropout(0.2),
 
         layers.Conv2D(128, 3, padding="same", activation="relu"),
-        layers.BatchNormalization(),
+        layers.BatchNormalization(momentum=BN_MOMENTUM),
         layers.MaxPooling2D(),
         layers.Dropout(0.3),
 
         layers.Conv2D(128, 3, padding="same", activation="relu"),
-        layers.BatchNormalization(),
+        layers.BatchNormalization(momentum=BN_MOMENTUM),
         layers.MaxPooling2D(),
         layers.Dropout(0.3),
 

@@ -253,9 +253,18 @@ def main() -> None:
             break
 
     env.close()
+    final_average = moving_averages[-1]
     if solved_episode is None:
-        print(f"\n  Episode budget ({MAX_EPISODES}) exhausted. Best "
-              f"{SOLVED_WINDOW}-episode average: {best_average:.1f}\n")
+        print(f"\n  Episode budget ({MAX_EPISODES}) exhausted without the rolling "
+              f"average crossing {SOLVED_THRESHOLD:.0f}.\n")
+    print(f"  Best rolling average {best_average:.1f} at episode {best_episode}; "
+          f"final rolling average {final_average:.1f}.")
+
+    # Evaluate the BEST weights, not whatever the last episode left behind. DQN is
+    # not monotonic - a run can reach a good policy and then collapse - so the
+    # final-episode weights are not a fair measure of what the agent learned.
+    agent.online.load_state_dict(best_state)
+    print("  Restored the best-performing weights for evaluation.\n")
 
     torch.save(agent.online.state_dict(), project_dir / "lunar_lander_dqn.pt")
     print("Saved trained weights: lunar_lander_dqn.pt")

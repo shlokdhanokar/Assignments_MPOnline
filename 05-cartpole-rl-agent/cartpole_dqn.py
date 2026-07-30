@@ -279,10 +279,18 @@ def main() -> None:
             break
 
     env.close()
+    final_average = moving_averages[-1]
     if solved_episode is None:
-        print(f"\n  Reached the {MAX_EPISODES}-episode budget without hitting the "
-              f"solved threshold. Best {SOLVED_WINDOW}-episode average: "
-              f"{max(moving_averages):.1f}\n")
+        print(f"\n  Reached the {MAX_EPISODES}-episode budget without the rolling "
+              f"average crossing {SOLVED_THRESHOLD}.\n")
+    print(f"  Best rolling average {best_average:.1f} at episode {best_episode}; "
+          f"final rolling average {final_average:.1f}.")
+
+    # Evaluate the BEST weights, not whatever the last episode left behind. An
+    # earlier 1000-episode run peaked at a 412 rolling average and collapsed to 28
+    # by the final episode, so evaluating final weights measured the collapse.
+    agent.online.load_state_dict(best_state)
+    print("  Restored the best-performing weights for evaluation.\n")
 
     torch.save(agent.online.state_dict(), project_dir / "cartpole_dqn.pt")
     print(f"Saved trained weights: cartpole_dqn.pt")
